@@ -30,7 +30,7 @@ def register():
 
 	name = event['name']
 	userType = event['usertype']
-	img = bytearray(base64.b64decode(str(re.sub('^data:image/.+;base64,', '', event['image']))))
+	img = bytearray(base64.urlsafe_b64decode(str(re.sub('^data:image/.+;base64,', '', event['image']))))
 
 
 	if userType == "patient":
