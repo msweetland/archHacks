@@ -1,10 +1,8 @@
-import React, { Component } from "react";
-//import "./Home.css";
-import Login from "../Login";
+import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
+import './App.css';
 
-import LineChart from 'react-linechart';
-import '../../../node_modules/react-linechart/dist/styles.css';
-
+//import Myo from './myo.js';
 import Myo from "myo";
 import AWS from "aws-sdk";
 
@@ -15,31 +13,31 @@ let kinesis = new AWS.Kinesis({
 
 });
 
+
+
+//Myo.connect('butt', require('ws'));
+//console.log("poop");
+
 function sleep (time) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
 
-
-export default class PatientHome extends Component {
-
+class Patient extends Component {
   constructor(props) {
-      super(props);
-      this.state = {
-        loggedIn:false,
-        xval: 123,
-        xprev: 0,
-        yval: 435,
-        yprev: 0,
-        zval: 555,
-        zprev: 0,
-        magchange: 0,
-        ready: 0,
-      };
+    super(props);
+    this.state = {
+      xval: 123,
+      xprev: 0,
+      yval: 435,
+      yprev: 0,
+      zval: 555,
+      zprev: 0,
+      magchange: 0,
+      ready: 0,
+    };
 
-      this.handleLoggedIn = this.handleLoggedIn.bind(this);
-      this.myoBand= this.myoBand.bind(this);
-      this.putRecord=this.putRecord.bind(this);
-      this.startStream=this.startStream.bind(this);
+    this.myoBand= this.myoBand.bind(this);
+    this.putRecord=this.putRecord.bind(this);
     //this.createNewStream=this.createNewStream.bind(this);
     //this.deleteOldStream=this.deleteOldStream.bind(this);
     //this.setupStream = this.setupStream.bind(this);
@@ -51,6 +49,8 @@ export default class PatientHome extends Component {
   }
 
   putRecord = () => {
+
+
     console.log(this.state.magchange);
     let params = {
       Data: String(this.state.magchange),
@@ -61,6 +61,8 @@ export default class PatientHome extends Component {
       if (err) console.log(err, err.stack); // an error occurred
       else;// {console.log(data['SequenceNumber'])};           // successful response
     });
+
+
   }
 
   myoBand = () => {
@@ -93,59 +95,29 @@ export default class PatientHome extends Component {
   }//.bind(this);
 
   startStream = () => {
-    console.log(this.state.ready);
     this.setState({ready: 1});
-    console.log(this.state.ready);
     let d = new Date();
     this.setState({start:d.getTime()});
-  }
-
-  handleLoggedIn = (e) => {
-    this.setState({loggedIn:!this.state.loggedIn});
   }
 
 
 
   render() {
-    const data = [
-            {
-                color: "black",
-                points: [{x: 1, y: 2}, {x: 3, y: 5}, {x: 7, y: -3}]
-            }
-        ];
-
     this.myoBand();
     this.putRecord();
     return (
-      <div>
-        <div>
-          {this.state.loggedIn ?
-            <div>
-              <LineChart
-                          width={600}
-                          height={400}
-                          data={data}
-                      />
+      <div className="accelerometer">
+        <header className="App-header">
+          <h1 className="App-title">Welcome Griffin!</h1>
+        </header>
+        <p>x: {this.state.xval}</p>
+        <p>y: {this.state.yval}</p>
+        <p>z: {this.state.zval}</p>
+        <button type="button" onClick={()=>this.startStream()}>begin appointment</button>
 
-
-
-
-
-            </div> :
-            <Login usertype="patient" handleLoggedIn={this.handleLoggedIn}/>
-          }
-        </div>
-        <div className="accelerometer">
-          <header className="App-header">
-            <h1 className="App-title">Welcome Griffin!</h1>
-          </header>
-          <p>x: {this.state.xval}</p>
-          <p>y: {this.state.yval}</p>
-          <p>z: {this.state.zval}</p>
-          <button type="button" onClick={()=>this.startStream()}>begin appointment</button>
-
-        </div>
       </div>
     );
   }
 }
+
+export default withRouter(Patient);
