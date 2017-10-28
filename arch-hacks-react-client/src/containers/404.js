@@ -4,8 +4,9 @@ import React, { Component } from "react";
 export default class FourOhFour extends Component {
   render() {
     return (
-      <div>
-        404 Error Nigglet
+      <div class="pt-callout pt-intent-danger pt-icon-error"
+        style={{margin:"15px"}}>
+        <h5>404 Page Not Found</h5>
       </div>
     );
   }
