@@ -7,23 +7,35 @@ export default class Registration extends Component {
 
   constructor(props) {
       super(props);
-      this.state = {name:"", usertype: "patient", image : ""};
+      this.state = {name:"", usertype: "patient", image : "", byteImage:""};
       this.sendRegistrationData = this.sendRegistrationData.bind(this);
       this.getBinary = this.getBinary.bind(this);
   }
 
-  getBinary = (base64Image) => {
+  getBinary(encodedFile){
 
-     let binaryImg = atob(base64Image);
-     let length = binaryImg.length;
-     let ab = new ArrayBuffer(length);
-     let ua = new Uint8Array(ab);
-     for (let i = 0; i < length; i++) {
-       ua[i] = binaryImg.charCodeAt(i);
-      }
+    var base64Image = encodedFile.split("data:image/jpeg;base64,")[1];
+    var binaryImg = atob(base64Image);
+    var length = binaryImg.length;
+    var ab = new ArrayBuffer(length);
+    var ua = new Uint8Array(ab);
+    var binaryImg = atob(base64Image);
+    var length = binaryImg.length;
 
-      return ab;
+    for (var i = 0; i < length; i++) {
+      ua[i] = binaryImg.charCodeAt(i);
+    }
+
+    var blob = new Blob([ab], {
+      type: "image/jpeg"
+    });
+
+
+    return ab;
   }
+
+
+
 
   setRef = (webcam) => {
     this.webcam = webcam;
@@ -46,10 +58,11 @@ export default class Registration extends Component {
 
       img.then((i) => {
 
-        this.setState({image:i});
-
+        this.setState({image:i,byteImage:this.getBinary(i)});
         console.log(this.state);
-        invokeApi("/register","POST",this.state);
+        console.log(this.state.byteImage.toString());
+        //let response = invokeApi("/register","POST",this.state);
+
       });
     };
   }

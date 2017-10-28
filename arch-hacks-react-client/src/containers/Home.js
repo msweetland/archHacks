@@ -18,23 +18,23 @@ export default class Home extends Component {
   render() {
     return (
       <div style={{marginLeft:"40vh",marginRight:"40vh", marginTop:"20vw"}}>
-          <div class="pt-card pt-elevation-0 pt-interactive"
+          <div className="pt-card pt-elevation-0 pt-interactive"
               onClick={() => this.handleRedirect('/patient')}
-              style={{textAlign:"center",margin:"15px"}}>
+              style={{textAlign:"center",margin:"15px", minWidth:"200px"}}>
             <Icon iconName="user" style={{padding:"10px"}}/>
             <h5>Patient Portal</h5>
           </div>
 
-          <div class="pt-card pt-elevation-0 pt-interactive"
+          <div className="pt-card pt-elevation-0 pt-interactive"
             onClick={() => this.handleRedirect('/doctor')}
-            style={{textAlign:"center",margin:"15px"}}>
+            style={{textAlign:"center",margin:"15px", minWidth:"200px"}}>
             <Icon iconName="prescription" style={{padding:"10px"}} />
             <h5>Doctor Portal</h5>
           </div>
 
-          <div class="pt-card pt-elevation-0 pt-interactive"
+          <div className="pt-card pt-elevation-0 pt-interactive"
             onClick={() => this.handleRedirect('/register')}
-            style={{textAlign:"center",margin:"15px"}}>
+            style={{textAlign:"center",margin:"15px", minWidth:"200px"}}>
             <Icon iconName="pt-icon-new-person" style={{padding:"10px"}} />
             <h5>Registration</h5>
           </div>

@@ -4,7 +4,7 @@ import Home from "./containers/Home";
 import PatientHome from "./containers/Patient/PatientHome";
 import DoctorHome from "./containers/Doctor/DoctorHome";
 import FourOhFour from "./containers/404";
-import Register from "./containers/Register";
+import Register from "./containers/RegisterLogin";
 
 export default () =>
   <Switch>
