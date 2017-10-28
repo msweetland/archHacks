@@ -6,3 +6,5 @@ body {
   font-family: sans-serif;
   background-color: #f5f8fa;
 }
+
+input:focus {outline:0 !important;}
