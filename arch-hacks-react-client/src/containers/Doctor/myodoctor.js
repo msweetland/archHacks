@@ -1,5 +1,7 @@
-import React, { Component } from "react";
-import Login from "../Login";
+import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
+import logo from './logo.svg';
+import './App.css';
 
 //import Myo from './myo.js';
 import Myo from "myo";
@@ -12,32 +14,35 @@ let kinesis = new AWS.Kinesis({
 
 });
 
+
+
+//Myo.connect('butt', require('ws'));
+//console.log("poop");
+
 function sleep (time) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
 
-export default class DoctorHome extends Component {
+class App extends Component {
   constructor(props) {
-      super(props);
-      this.state = {
-        loggedIn:false,
-        xval: 0,
-        yval: 0,
-        zval: 0,
-        shardit: null,
-        ready: 0,
-      };
+    super(props);
+    this.state = {
+      xval: 0,
+      yval: 0,
+      zval: 0,
+      shardit: null,
+      ready: 0,
+    };
 
-      this.getRecords=this.getRecords.bind(this);
-      this.getShardIterator=this.getShardIterator.bind(this);
-      this.startStream=this.startStream.bind(this);
-      this.stopStream=this.stopStream.bind(this);
-      this.handleLoggedIn = this.handleLoggedIn.bind(this);
+    this.getRecords=this.getRecords.bind(this);
+    this.getShardIterator=this.getShardIterator.bind(this);
+    this.startStream=this.startStream.bind(this);
+    this.stopStream=this.stopStream.bind(this);
+    //this.createNewStream=this.createNewStream.bind(this);
+    //this.deleteOldStream=this.deleteOldStream.bind(this);
+    //this.setupStream = this.setupStream.bind(this);
   }
 
-  handleLoggedIn = (e) => {
-    this.setState({loggedIn:!this.state.loggedIn});
-  }
 
   getShardIterator = () => {
     let getshard = new Promise((resolve, reject) => {
@@ -127,36 +132,27 @@ export default class DoctorHome extends Component {
 
 
 
+
+
   render() {
+    //console.log(this.state.shardit);
     this.getRecords();
     return (
-      <div>
-        <div>
-          {this.state.loggedIn ?
-            <div>
-              doctor dashboard
-
-
-
-
-
-            </div> :
-            <Login usertype="doctor" handleLoggedIn={this.handleLoggedIn}/>
-          }
-        </div>
-        <div className="doctor">
-          <header className="App-header">
-            <h1 className="App-title">Hello Doctor</h1>
-          </header>
-          <p>x: {this.state.xval}</p>
-          <p>y: {this.state.yval}</p>
-          <p>z: {this.state.zval}</p>
-          <button type="button" onClick={()=>this.getShardIterator()}>assign iterator</button>
-          <button type="button" onClick={()=>this.getRecords()}>get records</button>
-          <button type="button" onClick={()=>this.startStream()}>start streaming</button>
-          <button type="button" onClick={()=>this.stopStream()}>stop records</button>
-        </div>
+      <div className="doctor">
+        <header className="App-header">
+          <img src={logo} className="App-logo" alt="logo" />
+          <h1 className="App-title">Hello Doctor</h1>
+        </header>
+        <p>x: {this.state.xval}</p>
+        <p>y: {this.state.yval}</p>
+        <p>z: {this.state.zval}</p>
+        <button type="button" onClick={()=>this.getShardIterator()}>assign iterator</button>
+        <button type="button" onClick={()=>this.getRecords()}>get records</button>
+        <button type="button" onClick={()=>this.startStream()}>start streaming</button>
+        <button type="button" onClick={()=>this.stopStream()}>stop records</button>
       </div>
     );
   }
 }
+
+export default withRouter(Doctor);
