@@ -7,8 +7,8 @@ import AWS from "aws-sdk";
 
 let kinesis = new AWS.Kinesis({
   region : 'us-east-1',
-  accessKeyId: 'AKIAIBVXFZHLUNXC46EQ',
-  secretAccessKey: '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',
+  accessKeyId: 'AKIAJR4AAERI5SHLGN2Q',
+  secretAccessKey: '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',
 
 });
 
