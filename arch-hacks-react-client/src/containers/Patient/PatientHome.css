@@ -1,0 +1,52 @@
+.welcome {
+  text-align: center;
+  margin-top: 60px;
+  margin-bottom: 10px;
+}
+
+.data-all {
+  width: 100%;
+}
+
+.data-numbers {
+  float: left;
+  margin-top: 100px;
+  margin-left: 170px;
+}
+.data-graph {
+  margin-left:420px;
+  margin-right: 100px;
+}
+
+.data-running {
+  margin-top:20px;
+  font-size:40px;
+  text-align:center;
+}
+
+.data-normalized {
+  margin-top:20px;
+  font-size:20px;
+  text-align:center;
+}
+
+
+.sparkline {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.logo-header {
+  text-align: center;
+  margin-top: 60px;
+
+}
+
+#app-logo {
+
+    height: auto;
+    width: auto;
+    max-width: 1500px;
+    max-height: 150px;
+}

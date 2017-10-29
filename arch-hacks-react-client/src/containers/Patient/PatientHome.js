@@ -1,14 +1,20 @@
 import React, { Component } from "react";
+import {Sparklines, SparklinesCurve, SparklinesLine, UpdatingSparkline} from "react-sparklines";
+import * as d3 from "d3";
+import logo from './myoband2.png';
+//import {Sparkline} from "d3-react-sparkline";
 //import "./Home.css";
 import Login from "../Login";
 import invokeApi from "../../libs/awsLib.js"
 
-import LineChart from 'react-linechart';
 import '../../../node_modules/react-linechart/dist/styles.css';
+import './PatientHome.css';
 
 import Myo from "myo";
 import AWS from "aws-sdk";
+var LineChart = require('react-d3-basic').LineChart;
 
+let Chart = require('react-d3-core').Chart;
 let acc = 'AKIAJ4NBFNE26ESMGPOQ';
 let sec = 'suwXUAsBZUR9YZHMj1RIvbxdNF3aaSwnFnq0CkkR';
 
@@ -46,6 +52,8 @@ export default class PatientHome extends Component {
         ready: 0,
         total: [],
         average: 0,
+        shwo: 0,
+        totalEMG: [],
       };
 
       this.handleLoggedIn = this.handleLoggedIn.bind(this);
@@ -57,6 +65,10 @@ export default class PatientHome extends Component {
     //this.setupStream = this.setupStream.bind(this);
   }
 
+  componentDidMount() {
+    setInterval(() => this.forceUpdate(), 1000);
+  }
+
   componentWillMount(){
     Myo.connect('');
     //Myo.streamEMG(true);
@@ -65,16 +77,16 @@ export default class PatientHome extends Component {
   }
 
   putRecord = () => {
-    console.log(this.state.magchange);
+    //console.log(this.state.magchange);
     let params = {
       Data: String(this.state.magchange),
       PartitionKey: 'asshat', /* required */
       StreamName: 'PDstream', /* required */
     };
-    kinesis.putRecord(params, function(err, data) {
+    /*kinesis.putRecord(params, function(err, data) {
       if (err) console.log(err, err.stack); // an error occurred
       else;// {console.log(data['SequenceNumber'])};           // successful response
-    });
+    });*/
   }
 
   myoBandAcc = () => {
@@ -86,18 +98,18 @@ export default class PatientHome extends Component {
         myoData = data;
         //console.log(myoData)
       });
-      sleep(50).then(() => {
+      sleep(120).then(() => {
         let d = new Date();
         //console.log(d.getTime());
-        if((d.getTime() - this.state.start) > 15000) {
+        if((d.getTime() - this.state.start) > 10000) {
           //let sum = 0;
           //for(let i = 0; i<this.state.total.length; i++){sum = sum + this.state.total[i];}
           //this.setState({average: sum/this.state.total.length});
-          this.setState({ready: 0});
-          console.log(this.state.total);
+          this.setState({ready: 0,});
+          //console.log(this.state.total);
           let avgEmg = []
           for(let i = 0; i<this.state.total.length; i++){avgEmg = avgEmg.concat([100*this.state.total[i]]);}
-          console.log(avgEmg);
+          //console.log(avgEmg);
           let payload = {"name":"Michael Sweetland", "data":[this.state.total, avgEmg]};
           invokeApi('/sendData', "POST", payload);
         }
@@ -112,17 +124,9 @@ export default class PatientHome extends Component {
           zval: myoData['z'],
           zprev: this.state.zval,
           magchange: magchange,
-          total: this.state.total.concat([magchange])
+          total: this.state.total.concat([magchange]),
+          totalEMG: this.state.totalEMG.concat([(magchange*100)%3]),
         });
-
-           /*
-           data = {
-            ConsumedCapacity: {
-             CapacityUnits: 1,
-             TableName: "Music"
-            }
-           }
-           */
 
       });
     }
@@ -131,7 +135,7 @@ export default class PatientHome extends Component {
   myoBandEMG = () => {
     console.log("looging for emg");
     //com.stolksdorf.myAwesomeApp
-    if(this.state.ready) {
+    if(this.state.running) {
       let myoData = [];
       Myo.on('emg', function(data){
         //console.log(data['x']);
@@ -139,31 +143,14 @@ export default class PatientHome extends Component {
         //console.log(myoData)
       });
       sleep(100).then(() => {
-        console.log(myoData);
+        //console.log(myoData);
       });
-      /*sleep(100).then(() => {
-        let d = new Date();
-        //console.log(d.getTime());
-        if((d.getTime() - this.state.start) > 30000) {
-          this.setState({ready: 0});
-        }
-        let magchange = Math.sqrt(Math.pow(this.state.xval - this.state.xprev, 2)+Math.pow(this.state.yval - this.state.yprev, 2)+Math.pow(this.state.zval - this.state.zprev, 2));
-        this.setState({
-          xval: myoData['x'],
-          xprev: this.state.xval,
-          yval: myoData['y'],
-          yprev: this.state.yval,
-          zval: myoData['z'],
-          zprev: this.state.zval,
-          magchange: magchange,
-        });
-      });*/
     }
   }//.bind(this);
 
   startStream = () => {
     console.log(this.state.ready);
-    this.setState({ready: 1});
+    this.setState({ready: 1, show:1, total:[], totalEMG:[]});
     console.log(this.state.ready);
     let d = new Date();
     this.setState({start:d.getTime()});
@@ -176,44 +163,77 @@ export default class PatientHome extends Component {
 
 
   render() {
-    const data = [
-            {
-                color: "black",
-                points: [{x: 1, y: 2}, {x: 3, y: 5}, {x: 7, y: -3}]
-            }
-        ];
+
     this.myoBandAcc();
     this.putRecord();
+
+
+    var chartData = this.state.total;
+    // your date format, use for parsing
+    var parseDate = d3.time.format("%YM%m").parse;
+
+    var width = 500,
+      height = 300,
+      margins = {left: 100, right: 100, top: 50, bottom: 50},
+      // chart series,
+      // field: is what field your data want to be selected
+      // name: the name of the field that display in legend
+      // color: what color is the line
+      chartSeries = [
+        {
+          field: 'total',
+          name: 'Total',
+          color: '#ff7f0e'
+        }
+      ],
+      // your x accessor
+      x = function(d) {
+        return parseDate(d.month);
+      },
+      xScale = 'time';
+
     return (
       <div>
-        <div>
-          {this.state.loggedIn ?
-            <div>
-              <LineChart
-                          width={600}
-                          height={400}
-                          data={data}
-                      />
-
-
-
-
-
-            </div> :
-            <Login usertype="patient" handleLoggedIn={this.handleLoggedIn}/>
-          }
+        <div className="logo-header">
+          <img id="app-logo" src={logo} alt="logo" />
         </div>
-        <div className="accelerometer">
+        <div className="welcome">
           <header className="App-header">
-            <h1 className="App-title">Welcome Griffin!</h1>
-          </header>
-          <p>x: {this.state.xval}</p>
-          <p>y: {this.state.yval}</p>
-          <p>z: {this.state.zval}</p>
-          <p>average EMG: {100 * this.state.magchange}</p>
-          <button type="button" onClick={()=>this.startStream()}>begin appointment</button>
 
+            <h1 className="App-title">Welcome, Michael</h1>
+          </header>
+          <button type="button" onClick={()=>this.startStream()}>Click to begin appointment</button>
         </div>
+        { this.state.show ?
+          <div className="data-all">
+            <div className="data-numbers">
+              <p>X: {this.state.xval}</p>
+              <p>Y: {this.state.yval}</p>
+              <p>Z: {this.state.zval}</p>
+              <p>Average EMG: {100 * this.state.magchange}</p>
+            </div>
+            <div className="data-graph">
+              <Sparklines data={this.state.total} max={1}  width={100} height={15} margin={5}>
+                <SparklinesCurve color="blue" />
+              </Sparklines>
+              <Sparklines data={this.state.totalEMG} max={4}  width={100} height={15} margin={5}>
+                <SparklinesCurve color="grey" />
+              </Sparklines>
+            </div>
+            {this.state.ready ?
+            <div className="data-running">
+              Testing...
+            </div>
+            :
+            <div className="data-normalized">
+              Complete!
+            </div>
+            }
+          </div>
+          :
+          <div></div>
+        }
+
       </div>
     );
   }
