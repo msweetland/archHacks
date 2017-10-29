@@ -108,7 +108,7 @@ export default class PatientHome extends Component {
           this.setState({ready: 0,});
           //console.log(this.state.total);
           let avgEmg = []
-          for(let i = 0; i<this.state.total.length; i++){avgEmg = avgEmg.concat([100*this.state.total[i]]);}
+          for(let i = 0; i<this.state.total.length; i++){avgEmg = avgEmg.concat([(this.state.total[i]*100)%3]);}
           //console.log(avgEmg);
           let payload = {"name":"Michael Sweetland", "data":[this.state.total, avgEmg]};
           invokeApi('/sendData', "POST", payload);
