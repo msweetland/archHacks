@@ -2,7 +2,8 @@
 # ===================
 import json
 import re
-import base64
+import os
+from base64 import decodestring
 
 # Chalice and AWS
 # ===============
@@ -13,93 +14,103 @@ from boto3.dynamodb.conditions import Key, Attr
 app = Chalice(app_name='archHacksAPI')
 app.debug = True
 
-rekognitionPatient = "archhacksPatient"
-rekognitionDoctor = "archhacksDoctor"
-rekognition = boto3.client('rekognition')
+#rekognitionPatient = "archhacksPatient"
+#rekognitionDoctor = "archhacksDoctor"
+#rekognition = boto3.client('rekognition')
 dynamodb = boto3.resource('dynamodb')
 
 
-# Register User
-# =============
-# Receives
-#	{name:"", userType: "patient", image : "base64", byteImage: bytes}
+# Create Patient
+# ==============
+# status: works
+# {name:""}
 
 @app.route('/register',methods=['POST'],content_types=['application/json'], cors=True)
 def register():
 	event = json.loads(app.current_request.raw_body)
+	username = event["name"]
 
-	name = event['name']
-	userType = event['usertype']
-	img = bytearray(base64.urlsafe_b64decode(str(re.sub('^data:image/.+;base64,', '', event['image']))))
+	table = dynamodb.Table("patient")
+	items = table.query(
+		KeyConditionExpression=Key('username').eq(username)
+	)[u"Items"]
 
-
-	if userType == "patient":
-		rekognitionCollection = rekognitionPatient
-	else:
-		rekognitionCollection = rekognitionDoctor
-
-	faceID = rekognition.index_faces(
-		CollectionId=rekognitionCollection,
-		Image={
-			'Bytes': bytearray(img)
-			},
-	)#["FaceRecords"][0]["Face"]["FaceId"]
-
-	return faceID
-
-	faceID = "test"
-
-	table = dynamodb.Table(userType)
-	table.put_item(
+	if items == []:
+		table.put_item(
 		Item={
-			"faceID": str(faceID),
-			"Name": str(name),
-			"Image": str(event['image']),	
+			"username": username,
+			"appt": 0,
+			"data": [0]	
 			}
-	)
-	
-	return {"Success":True}
-
-
-# Identify User
-# =============
-# Receives
-#	{name:"", isDoctor: "patient", image : "base64"}
-
-@app.route('/identify',methods=['POST'],content_types=['application/json'], cors=True)
-def identify():
-	event = json.loads(app.current_request.raw_body)
-
-	name = event['name']
-	userType = event['usertype']
-	image = re.sub('^data:image/.+;base64,', '', event['image'])
-
-	if userType == "patient":
-		rekognitionCollection = rekognitionPatient
+		)
+		return {"Success":True}
 	else:
-		rekognitionCollection = rekognitionDoctor
+		return {"Success":False}
 
-	response = rekognition.search_faces_by_image(
-		CollectionId=rekognitionCollection,
-		Image={
-			'Bytes': bytearray(image.decode('base64'))
-			},
-		MaxFaces=1,
-		FaceMatchThreshold=65
-	)
 
-	if len(response['FaceMatches']) == 0:
-		return False
 
-	faceID = response['FaceMatches'][0]['Face']['FaceId']
+# Add Data
+# ========
+# status: works
+# {name:"", data: ""}
 
-	table = dynamodb.Table(userType)
-	response = table.query(
-		IndexName='faceID',
-		KeyConditionExpression=Key('faceID').eq(faceID)
-	)
+@app.route('/sendData',methods=['POST'],content_types=['application/json'], cors=True)
+def sendData():
+	event = json.loads(app.current_request.raw_body)
+	username = event["name"]
 
-	return name
+	table = dynamodb.Table("patient")
+	items = table.query(
+		KeyConditionExpression=Key('username').eq(username)
+	)[u"Items"]
+
+
+	if items != []:
+		lastApt = 0
+		for dic in items:
+			if dic["appt"] > lastApt: lastApt = dic["appt"]
+		lastApt += 1
+		table.put_item(
+		Item={
+			"username": username,
+			"appt": lastApt,
+			"accelerometer":[str(n) for n in event["data"][0]],
+			"emg":[str(n) for n in event["data"][1]]
+			}
+		)
+
+		return {"Success":True}
+
+	return {"Success":False}
+
+
+
+# Get Patients
+# ============
+# status: works
+
+@app.route('/getPatients',methods=['GET'],content_types=['application/json'], cors=True)
+def getPatients():
+	table = dynamodb.Table("patient")
+	return table.scan()["Items"]
+
+
+# Get Patient
+# ===========
+# status: works
+# {name:"", data: ""}
+@app.route('/getPatient',methods=['POST'],content_types=['application/json'], cors=True)
+def getPatient():
+	event = json.loads(app.current_request.raw_body)
+	username = event["name"]
+
+	table = dynamodb.Table("patient")
+	return table.query(
+		KeyConditionExpression=Key('username').eq(username)
+	)[u"Items"]
+
+
+
 
 
 
