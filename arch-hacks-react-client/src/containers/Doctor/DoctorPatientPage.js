@@ -26,15 +26,26 @@ export default class DoctorPatientPage extends Component {
       .then(searchResultsJSON => {
         let d = Array(searchResultsJSON)[0];
         d.shift();
+
+
         this.setState({appointments: d, isLoading:false});
       })
       .catch(err => {
         console.log('No search results', err);
-
       });
 
 
   }
+
+  calcAverage(ls){
+    let total = 0;
+    for(let i = 0; i < ls.length; i++) {
+        total += Number(ls[i]);
+    }
+    console.log(total / ls.length)
+    return total / ls.length;
+  }
+
 
   handleRedirect = (url) => {
     this.props.history.push(url);
@@ -46,13 +57,15 @@ export default class DoctorPatientPage extends Component {
         style={{margin:"20px"}}>
         {console.log(o)}
         <h5>{o.username}</h5>
-        <p>View this patient's most recent appointment was on 10/29/2017</p>
+        <p>View this patient's most recent appointment was on <b>10/29/2017</b></p>
         <p>Accelerometer Data</p>
+        <p>Mean Tremor Value: <b>{this.calcAverage(o.accelerometer)*100}</b></p>
         <Sparklines data={o.accelerometer} max={1}  width={500} height={15} margin={5}>
           <SparklinesCurve color="blue" />
         </Sparklines>
         <p>EMG Data</p>
-        <Sparklines data={o.emg} max={100} width={500} height={15} margin={5}>
+        <p>Average Value: <b>{this.calcAverage(o.emg)}</b></p>
+        <Sparklines data={o.emg} max={3} width={500} height={15} margin={5}>
           <SparklinesCurve color="grey" />
         </Sparklines>
       </div>

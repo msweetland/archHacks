@@ -42,7 +42,8 @@ export default class DoctorHome extends Component {
         onClick={() => this.handleRedirect('/doctor/'+o.username)}
         style={{margin:"20px"}}>
         <h5>{o.username}</h5>
-        <p>View this patient's most recent appointment was on 10/29/2017</p>
+        <p>View this patient's most recent appointment was on <b>10/29/2017</b></p>
+
       </div>
     );
   }
