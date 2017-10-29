@@ -7,8 +7,8 @@ import AWS from "aws-sdk";
 
 let kinesis = new AWS.Kinesis({
   region : 'us-east-1',
-  accessKeyId: 'AKIAIHUIN4UJFSRPWQJQ',
-  secretAccessKey: '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',
+  accessKeyId: 'AKIAIBVXFZHLUNXC46EQ',
+  secretAccessKey: '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',
 
 });
 
@@ -83,7 +83,7 @@ export default class DoctorHome extends Component {
         Limit: 30
       };
       //let nextshard = null;
-      let nextshard = null;
+      let nextshard = this.state.shardit;
       kinesis.getRecords(params, function(err, data) {
         if (err) console.log(err, err.stack); // an error occurred
         else     {
@@ -98,9 +98,10 @@ export default class DoctorHome extends Component {
             for(let i=0;i<x.length;i++) { array[i] = String.fromCharCode(x[i]); }
             console.log(parseFloat(array.join('')))
             //console.log(x)
+            nextshard = data['NextShardIterator'];
           }
           else {console.log("no data gotten");}
-          nextshard = data['NextShardIterator'];
+
         }           // successful response
       });
       sleep(1000).then(() => {
