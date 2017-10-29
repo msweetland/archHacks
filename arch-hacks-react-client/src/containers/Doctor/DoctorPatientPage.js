@@ -24,12 +24,15 @@ export default class DoctorPatientPage extends Component {
         throw new Error('Error.');
       })
       .then(searchResultsJSON => {
-        this.setState({appointments: Array(searchResultsJSON), isLoading:false});
+        let d = Array(searchResultsJSON)[0];
+        d.shift();
+        this.setState({appointments: d, isLoading:false});
       })
       .catch(err => {
         console.log('No search results', err);
 
       });
+
 
   }
 
@@ -45,11 +48,11 @@ export default class DoctorPatientPage extends Component {
         <h5>{o.username}</h5>
         <p>View this patient's most recent appointment was on 10/29/2017</p>
         <p>Accelerometer Data</p>
-        <Sparklines data={o.accelerometer} max={1}  width={100} height={15} margin={5}>
+        <Sparklines data={o.accelerometer} max={1}  width={500} height={15} margin={5}>
           <SparklinesCurve color="blue" />
         </Sparklines>
         <p>EMG Data</p>
-        <Sparklines data={o.emg} max={12} width={100} height={15} margin={5}>
+        <Sparklines data={o.emg} max={100} width={500} height={15} margin={5}>
           <SparklinesCurve color="grey" />
         </Sparklines>
       </div>
@@ -82,7 +85,7 @@ export default class DoctorPatientPage extends Component {
           </div>
 
           :
-          this.state.appointments[0].map((i)=>
+          this.state.appointments.map((i)=>
             this.renderPatient(i))
         }
 
