@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 //import "./Home.css";
 import Login from "../Login";
+import invokeApi from "../../libs/awsLib.js"
 
 import LineChart from 'react-linechart';
 import '../../../node_modules/react-linechart/dist/styles.css';
@@ -8,10 +9,17 @@ import '../../../node_modules/react-linechart/dist/styles.css';
 import Myo from "myo";
 import AWS from "aws-sdk";
 
+
+let dynamodb = new AWS.DynamoDB({
+  region : 'us-east-1',
+  accessKeyId: 'AKIAJR4AAERI5SHLGN2Q',
+  secretAccessKey: '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',
+});
+
 let kinesis = new AWS.Kinesis({
   region : 'us-east-1',
-  accessKeyId: 'AKIAIBVXFZHLUNXC46EQ',
-  secretAccessKey: '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',
+  accessKeyId: 'AKIAJR4AAERI5SHLGN2Q',
+  secretAccessKey: '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',
 
 });
 
@@ -34,10 +42,12 @@ export default class PatientHome extends Component {
         zprev: 0,
         magchange: 0,
         ready: 0,
+        total: [],
+        average: 0,
       };
 
       this.handleLoggedIn = this.handleLoggedIn.bind(this);
-      this.myoBand= this.myoBand.bind(this);
+      this.myoBandAcc= this.myoBandAcc.bind(this);
       this.putRecord=this.putRecord.bind(this);
       this.startStream=this.startStream.bind(this);
     //this.createNewStream=this.createNewStream.bind(this);
@@ -47,6 +57,8 @@ export default class PatientHome extends Component {
 
   componentWillMount(){
     Myo.connect('');
+    //Myo.streamEMG(true);
+
     //console.log("poop");
   }
 
@@ -63,7 +75,7 @@ export default class PatientHome extends Component {
     });
   }
 
-  myoBand = () => {
+  myoBandAcc = () => {
     //com.stolksdorf.myAwesomeApp
     if(this.state.ready) {
       let myoData = [];
@@ -72,9 +84,64 @@ export default class PatientHome extends Component {
         myoData = data;
         //console.log(myoData)
       });
-      sleep(100).then(() => {
+      sleep(50).then(() => {
         let d = new Date();
-        console.log(d.getTime());
+        //console.log(d.getTime());
+        if((d.getTime() - this.state.start) > 15000) {
+          //let sum = 0;
+          //for(let i = 0; i<this.state.total.length; i++){sum = sum + this.state.total[i];}
+          //this.setState({average: sum/this.state.total.length});
+          this.setState({ready: 0});
+          console.log(this.state.total);
+          let avgEmg = []
+          for(let i = 0; i<this.state.total.length; i++){avgEmg = avgEmg.concat([100*this.state.total[i]]);}
+          console.log(avgEmg);
+          let payload = {"name":"Michael Sweetland", "data":[this.state.total, avgEmg]};
+          invokeApi('/sendData', "POST", payload);
+        }
+        let magchange = Math.sqrt(Math.pow(this.state.xval - this.state.xprev, 2)+Math.pow(this.state.yval - this.state.yprev, 2)+Math.pow(this.state.zval - this.state.zprev, 2));
+        if(magchange > 5){magchange = this.state.magchange;console.log('caught');}
+        else if(magchange <0.000001){magchange = 0.020020202;console.log('caught');}
+        this.setState({
+          xval: myoData['x'],
+          xprev: this.state.xval,
+          yval: myoData['y'],
+          yprev: this.state.yval,
+          zval: myoData['z'],
+          zprev: this.state.zval,
+          magchange: magchange,
+          total: this.state.total.concat([magchange])
+        });
+
+           /*
+           data = {
+            ConsumedCapacity: {
+             CapacityUnits: 1,
+             TableName: "Music"
+            }
+           }
+           */
+
+      });
+    }
+  }//.bind(this);
+
+  myoBandEMG = () => {
+    console.log("looging for emg");
+    //com.stolksdorf.myAwesomeApp
+    if(this.state.ready) {
+      let myoData = [];
+      Myo.on('emg', function(data){
+        //console.log(data['x']);
+        myoData = data;
+        //console.log(myoData)
+      });
+      sleep(100).then(() => {
+        console.log(myoData);
+      });
+      /*sleep(100).then(() => {
+        let d = new Date();
+        //console.log(d.getTime());
         if((d.getTime() - this.state.start) > 30000) {
           this.setState({ready: 0});
         }
@@ -88,7 +155,7 @@ export default class PatientHome extends Component {
           zprev: this.state.zval,
           magchange: magchange,
         });
-      });
+      });*/
     }
   }//.bind(this);
 
@@ -113,8 +180,7 @@ export default class PatientHome extends Component {
                 points: [{x: 1, y: 2}, {x: 3, y: 5}, {x: 7, y: -3}]
             }
         ];
-
-    this.myoBand();
+    this.myoBandAcc();
     this.putRecord();
     return (
       <div>
@@ -142,6 +208,7 @@ export default class PatientHome extends Component {
           <p>x: {this.state.xval}</p>
           <p>y: {this.state.yval}</p>
           <p>z: {this.state.zval}</p>
+          <p>average EMG: {100 * this.state.magchange}</p>
           <button type="button" onClick={()=>this.startStream()}>begin appointment</button>
 
         </div>
