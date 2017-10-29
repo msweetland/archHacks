@@ -205,11 +205,13 @@ export default class PatientHome extends Component {
           <button type="button" onClick={()=>this.startStream()}>Click to begin appointment</button>
         </div>
         { this.state.show ?
-          <div className="data-all">
+          <div className="pt-card pt-elevation-0 pt-interactive" style={{marginTop:"30px"}}>
             <div className="data-numbers">
               <p>X: {this.state.xval}</p>
               <p>Y: {this.state.yval}</p>
               <p>Z: {this.state.zval}</p>
+              <p>_______________________</p>
+              <p></p>
               <p>Average EMG: {100 * this.state.magchange}</p>
             </div>
             <div className="data-graph">
