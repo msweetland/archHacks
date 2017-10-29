@@ -9,17 +9,19 @@ import '../../../node_modules/react-linechart/dist/styles.css';
 import Myo from "myo";
 import AWS from "aws-sdk";
 
+let acc = 'AKIAJ4NBFNE26ESMGPOQ';
+let sec = 'suwXUAsBZUR9YZHMj1RIvbxdNF3aaSwnFnq0CkkR';
 
 let dynamodb = new AWS.DynamoDB({
   region : 'us-east-1',
-  accessKeyId: 'AKIAJR4AAERI5SHLGN2Q',
-  secretAccessKey: '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',
+  accessKeyId: acc,
+  secretAccessKey: sec,
 });
 
 let kinesis = new AWS.Kinesis({
   region : 'us-east-1',
-  accessKeyId: 'AKIAJR4AAERI5SHLGN2Q',
-  secretAccessKey: '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',
+  accessKeyId: acc,
+  secretAccessKey: sec,
 
 });
 
