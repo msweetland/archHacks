@@ -53,7 +53,7 @@ export default class DoctorHome extends Component {
       <div>
         <nav className="pt-navbar .modifier">
           <div className="pt-navbar-group pt-align-left">
-            <div className="pt-navbar-heading">Doctor Protal</div>
+            <div className="pt-navbar-heading">Doctor Portal</div>
           </div>
           <div className="pt-navbar-group pt-align-right">
             <button className="pt-button pt-minimal pt-icon-home"
